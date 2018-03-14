@@ -65,19 +65,19 @@ class SigV4 {
 		});
 	}
 	
-	public static function createScope(date:Date, region:String, service:String) {
+	static function createScope(date:Date, region:String, service:String) {
 		return '${date.format('%Y%m%d')}/$region/$service/aws4_request';
 	}
 	
-	public static function createStringToSign(date:Date, scope:String, canonicalRequest:String) {
+	static function createStringToSign(date:Date, scope:String, canonicalRequest:String) {
 		return '$ALGORITHM\n${date.format('%Y%m%dT%H%M%SZ')}\n$scope\n${Sha256.encode(canonicalRequest)}';
 	}
 	
-	public static function createSignature(signingKey:Bytes, stringToSign:String) {
+	static function createSignature(signingKey:Bytes, stringToSign:String) {
 		return new Hmac(SHA256).make(signingKey, Bytes.ofString(stringToSign)).toHex();
 	}
 	
-	public static function createCanonicalRequest(req:OutgoingRequestHeader, ?signedHeaders:Array<String>, ?payload:String):String {
+	static function createCanonicalRequest(req:OutgoingRequestHeader, ?signedHeaders:Array<String>, ?payload:String):String {
 		// ensure there is a host header
 		switch req.byName(HOST) {
 			case Success(_): // ok
@@ -168,7 +168,7 @@ class SigV4 {
 	// 	return requestUrl;
 	// };
 	
-	public static function createSignatureKey(secretAccessKey:String, date:Date, region:String, service:String) {
+	static function createSignatureKey(secretAccessKey:String, date:Date, region:String, service:String) {
 		var hmac = new Hmac(SHA256);
 		var kDate = hmac.make(Bytes.ofString('AWS4$secretAccessKey'), Bytes.ofString(date.format('%Y%m%d')));
 		var kRegion = hmac.make(kDate,  Bytes.ofString(region));

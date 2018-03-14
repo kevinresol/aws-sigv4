@@ -26,7 +26,7 @@ class RunTests {
   
   function new() {}
   
-  public function example() {
+  public function parts() @:privateAccess {
     var date = new Date(2013, 4, 24, 0, 0, 0);
     var secretAccessKey = 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY';
     var request = new OutgoingRequestHeader(GET, 'https://examplebucket.s3.amazonaws.com/test.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20130524%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20130524T000000Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host', []);
