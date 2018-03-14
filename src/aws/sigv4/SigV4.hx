@@ -113,61 +113,6 @@ class SigV4 {
 		return s + (payload == null ? 'UNSIGNED-PAYLOAD' : Sha256.encode(payload));
 	}
 
-	// /**
-	//  *  Used to sign the IoT endpoint URL to establish a MQTT websocket.
-	//  *  @param {string} host - Our AWS IoT endpoint.
-	//  *  @param {string} region - Our AWS region (us-east-1).
-	//  *  @param {object} credentials - Current user's stored AWS.config.credentials object.
-	// */
-	// public static function getSignedUrl(config:{
-	// 	protocol:String,
-	// 	host:String,
-	// 	region:String,
-	// 	service:String,
-	// 	path:String,
-	// 	method:String,
-	// 	credentials:Credentials,
-	// }) {
-	// 	var protocol = config.protocol;
-	// 	var host = config.host;
-	// 	var region = config.region;
-	// 	var service = config.service;
-	// 	var path = config.path;
-	// 	var method = config.method;
-	// 	var credentials = config.credentials;
-		
-	// 	var timezoneOffset = new Date(1970,0,1,0,0,0).getTime();
-	// 	var datetime = Date.now().delta(timezoneOffset).format('%Y%m%dT%H%M%SZ');
-	// 	var date = datetime.substr(0, 8);
-
-	// 	if(path.charCodeAt(0) != '/'.code) path = '/$path';
-	// 	var algorithm = 'AWS4-HMAC-SHA256';
-
-	// 	var credentialScope = '${date}/${region}/${service}/aws4_request';
-	// 	var canonicalQuerystring = 'X-Amz-Algorithm=${algorithm}';
-	// 	var credentialsURI = '${credentials.accessKeyId}/${credentialScope}'.urlEncode();
-	// 	canonicalQuerystring += '&X-Amz-Credential=${credentialsURI}';
-	// 	canonicalQuerystring += '&X-Amz-Date=${datetime}';
-	// 	canonicalQuerystring += '&X-Amz-SignedHeaders=host';
-
-	// 	var canonicalHeaders = 'host:${host}\n';
-	// 	var payloadHash = Sha256.encode('');
-
-	// 	var canonicalRequest = method + '\n' + path + '\n' + canonicalQuerystring + '\n' + canonicalHeaders + '\nhost\n' + payloadHash;
-
-	// 	var stringToSign = '${algorithm}\n${datetime}\n${credentialScope}\n${Sha256.encode(canonicalRequest)}';
-	// 	var signingKey = createSignatureKey(credentials.secretAccessKey, date, region, service);
-	// 	var signature = new Hmac(SHA256).make(signingKey, Bytes.ofString(stringToSign)).toHex();
-
-	// 	canonicalQuerystring += '&X-Amz-Signature=${signature}';
-	// 	if (credentials.sessionToken != null) {
-	// 		canonicalQuerystring += '&X-Amz-Security-Token=${credentials.sessionToken.urlEncode()}';
-	// 	}
-
-	// 	var requestUrl = '${protocol}://${host}${path}?${canonicalQuerystring}';
-	// 	return requestUrl;
-	// };
-	
 	static function createSignatureKey(secretAccessKey:String, date:Date, region:String, service:String) {
 		var hmac = new Hmac(SHA256);
 		var kDate = hmac.make(Bytes.ofString('AWS4$secretAccessKey'), Bytes.ofString(date.format('%Y%m%d')));
@@ -177,6 +122,3 @@ class SigV4 {
 		return kCredentials;
 	}
 }
-
-// TODO: test
-// http://docs.aws.amazon.com/general/latest/gr/signature-v4-test-suite.html

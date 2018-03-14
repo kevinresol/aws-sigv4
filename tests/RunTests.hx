@@ -67,6 +67,7 @@ class RunTests {
     return asserts.done();
   }
   
+  // TODO: http://docs.aws.amazon.com/general/latest/gr/signature-v4-test-suite.html
   // public function test() {
   //   var folder = 'tests/suite/aws-sig-v4-test-suite';
   //   Stream.ofIterator(folder.readDirectory().iterator()).forEach(function(suite) {
