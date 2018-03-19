@@ -49,7 +49,7 @@ class SigV4 {
 			request.url,
 			request.url.query 
 			+ '&X-Amz-Signature=$signature' 
-			+ (options.sessionToken == null ? '' : '&X-Amz-Security-Token=${options.sessionToken}')
+			+ (options.sessionToken == null ? '' : '&X-Amz-Security-Token=${options.sessionToken.urlEncode()}')
 		);
 	}
 	
