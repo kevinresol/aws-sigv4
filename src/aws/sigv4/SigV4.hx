@@ -31,12 +31,15 @@ class SigV4 {
 		date = date.delta(timezoneOffset); // offset it so that when formatted to string we get UTC
 		
 		var scope = createScope(date, options.region, options.service);
+		var signedHeaders = [for(h in options.request) h.name];
+		if(signedHeaders.indexOf('host') == -1) signedHeaders.push('host');
+		
 		var query = (options.request.url.query == null ? '' : options.request.url.query + '&') 
 			+  'X-Amz-Algorithm=$ALGORITHM'
 			+ '&X-Amz-Credential=${StringTools.urlEncode(options.accessKeyId + '/' + scope)}'
 			+ '&X-Amz-Date=${date.format('%Y%m%dT%H%M%SZ')}'
 			+ (options.expiry == null ? '' : '&X-Amz-Expires=${options.expiry}')
-			+ '&X-Amz-SignedHeaders=host'
+			+ '&X-Amz-SignedHeaders=${signedHeaders.join(';')}'
 			;
 		
 		var request = new OutgoingRequestHeader(options.request.method, replaceQuery(options.request.url, query), [for(h in options.request) h]);
@@ -51,6 +54,51 @@ class SigV4 {
 			+ '&X-Amz-Signature=$signature' 
 			+ (options.sessionToken == null ? '' : '&X-Amz-Security-Token=${options.sessionToken.urlEncode()}')
 		);
+	}
+	
+	public static function signRequest(options:{
+		request:OutgoingRequestHeader,
+		region:String,
+		service:String,
+		secretAccessKey:String,
+		accessKeyId:String,
+		?sessionToken:String,
+		?expiry:Int,
+		?date:Date,
+		?payload:String,
+	}) {
+		
+		var date = options.date == null ? Date.now() : options.date;
+		var timezoneOffset = new Date(1970,0,1,0,0,0).getTime();
+		date = date.delta(timezoneOffset); // offset it so that when formatted to string we get UTC
+		
+		var scope = createScope(date, options.region, options.service);
+			
+		var request = options.request.concat({
+			var headers = [
+				new HeaderField('X-Amz-Date', date.format('%Y%m%dT%H%M%SZ')),
+			];
+			if(options.expiry != null)
+				headers.push(new HeaderField('X-Amz-Expiry', Std.string(options.expiry)));
+			switch options.request.byName(HOST) {
+				case Success(_): // ok
+				case Failure(_): headers.push(new HeaderField(HOST, options.request.url.host.toString()));
+			}
+			if(options.service == 's3')
+				headers.push(new HeaderField('X-Amz-Content-SHA256', createPayloadHash(options.payload)));
+			
+			headers;
+		});
+		
+		var signedHeaders = [for(h in request) h.name];
+		signedHeaders.sort(Reflect.compare);
+		
+		var canonicalRequest = createCanonicalRequest(request, signedHeaders, options.payload);
+		var stringToSign = createStringToSign(date, scope, canonicalRequest);
+		var signingKey = createSignatureKey(options.secretAccessKey, date, options.region, options.service);
+		var signature = createSignature(signingKey, stringToSign);
+		
+		return request.concat([new HeaderField(AUTHORIZATION, '$ALGORITHM Credential=${options.accessKeyId}/$scope, SignedHeaders=${signedHeaders.join(';')}, Signature=$signature')]);
 	}
 	
 	static function replaceQuery(url:Url, query:String) {
@@ -110,7 +158,11 @@ class SigV4 {
 		}
 		append(signedHeaders.join(';'));
 		
-		return s + (payload == null ? 'UNSIGNED-PAYLOAD' : Sha256.encode(payload));
+		return s + createPayloadHash(payload);
+	}
+	
+	static function createPayloadHash(payload:String) {
+		return payload == null ? 'UNSIGNED-PAYLOAD' : Sha256.encode(payload);
 	}
 
 	static function createSignatureKey(secretAccessKey:String, date:Date, region:String, service:String) {
