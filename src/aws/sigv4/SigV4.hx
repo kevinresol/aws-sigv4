@@ -142,7 +142,7 @@ class SigV4 {
 		var params = req.url.query.toMap();
 		var keys = [for(k in params.keys()) k];
 		keys.sort(Reflect.compare);
-		append([for(k in keys) '$k=${params.get(k).urlEncode()}'].join('&'));
+		append([for(k in keys) '$k=${StringTools.urlEncode(params.get(k))}'].join('&'));
 		
 		var headers = [for(h in req) h];
 		headers.sort(function(h1, h2) return Reflect.compare(h1.name, h2.name));
