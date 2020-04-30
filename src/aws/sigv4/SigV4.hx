@@ -105,8 +105,7 @@ class SigV4 {
 		return Url.make({
 			path: url.path,
 			query: query,
-			host: url.host,
-			hosts: url.hosts,
+			hosts: [for(host in url.hosts) host],
 			auth: url.auth,
 			scheme: url.scheme,
 			hash: url.hash,
@@ -173,4 +172,5 @@ class SigV4 {
 		var kCredentials = hmac.make(kService,  Bytes.ofString('aws4_request'));
 		return kCredentials;
 	}
+	
 }
